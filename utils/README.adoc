@@ -1,0 +1,26 @@
+= Utilities
+CPEN 212
+:experimental:
+
+== Reference `crash` shell
+
+`crash-ref` is a reference implementation of the `crash` shell you will implement in this lab.
+
+
+== Tools for input recording and live replay
+
+`cpen212script` and `cpen212scriptlive` allow you to record and replay inputs to a program. They come from link:https://kernel.org/pub/linux/utils/util-linux/v2.38/[the util-linux package], where they are originally called `script` and `scriptlive`; we prefixed them with `cpen212` because `ssh.ece.ubc.ca` has older versions of the same tools that do not have the recording capability.
+
+`cpen212script` records two files: an input record, which that captures stdin, and a timing record, which captures the timing at which events occurred. `cpen212scriptlive` can replay these files.
+
+You can record a script by running
+
+  ./cpen212script -I example.in -T example.tm -c ./crash-ref
+
+and typing in some commands like `ls` or `jobs`, or sending signals via kbd:[Ctrl+Z] and so on.
+
+You can then feed the replay to `crash-ref` using
+
+  ./cpen212scriptlive -I example.in -T example.tm -c ./crash-ref
+
+You can read more by running these tools with `-h` or reading the manuals for link:script.1.adoc[cpen212script] or link:scriptlive.1.adoc[cpen212scriptlive].
