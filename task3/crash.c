@@ -245,7 +245,6 @@ void cmd_slay(const char **toks) {
                 sigprocmask(SIG_UNBLOCK, &mask, NULL);
                 kill(thePID, SIGKILL);
             } else {
-                printf("DNE \n");
                 sigprocmask(SIG_UNBLOCK, &mask, NULL);
                 fprintf(stderr, "ERROR: no job: %s \n", toks[1]); 
             }
