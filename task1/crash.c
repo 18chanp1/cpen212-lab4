@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include<signal.h>
+#include <unistd.h>
 
 #define MAXLINE 1024
 #define MAXJOBS 1024
@@ -17,6 +18,8 @@ struct Job {
     pid_t PID;
     int status;
     char command[1024];
+    char sJobNumber[16];
+    char sPID[16];
     struct Job* next;
     struct Job* prev;
 };
@@ -32,11 +35,18 @@ struct Job* HEAD;
 struct Job* TAIL;
 int jobsNumber = 1;
 
+void freeNode(struct Job* currentNode){
+    currentNode->prev->next=currentNode->next;
+    currentNode->next->prev=currentNode->prev;
+    free(currentNode);
+}
+
 
 void handle_sigchld(int sig) {
     // TODO
     pid_t currPID;
-    while( (currPID = waitpid(-1, NULL, WNOHANG)) != -1){
+    int status;
+    while( (currPID = waitpid(-1, &status, WNOHANG)) != -1){
         struct Job* node = HEAD->next;
 
         while(node->jobNumber != 0 && node->PID != currPID){
@@ -46,11 +56,28 @@ void handle_sigchld(int sig) {
         if(node->jobNumber == 0){
             return;
         } else {
-            node->prev->next=node->next;
-            node->next->prev=node->prev;
-            free(node);
+                if(WIFSIGNALED(status)){
+                write(STDOUT_FILENO, "[", 1);
+                write(STDOUT_FILENO, node->sJobNumber, strlen(node->sJobNumber));
+                write(STDOUT_FILENO, "] ", 2);
+
+                write(STDOUT_FILENO, "(", 1);
+                write(STDOUT_FILENO, node->sPID, strlen(node->sPID));
+                write(STDOUT_FILENO, ") ", 2);
+
+                write(STDOUT_FILENO, "killed ", 7);
+                write(STDOUT_FILENO, node->command, strlen(node->command));
+                write(STDOUT_FILENO, "\n>", 1);
+                }
+
+            node->status = 2;
+            //NOT SIGNAL SAFE
+            // node->prev->next=node->next;
+            // node->next->prev=node->prev;
+            // free(node);
         }
         //TODO print if needed
+        
     }
 }
 
@@ -96,6 +123,9 @@ void spawn(const char **toks, bool bg) { // bg is true iff command ended with &
     if(!strcmp(toks[0], "jobs")){
         cmd_jobs(toks);
         return;
+    } else if(!strcmp(toks[0], "slay")){
+        cmd_slay(toks);
+        return;
     }
 
     if (bg) {
@@ -120,6 +150,8 @@ void spawn(const char **toks, bool bg) { // bg is true iff command ended with &
             newEnd->PID = childpid;
             newEnd->status = 0;
             strcpy(newEnd->command, toks[0]);
+            sprintf(newEnd->sJobNumber, "%d", newEnd->jobNumber);
+            sprintf(newEnd->sPID, "%d", newEnd->PID);
             newEnd->next = TAIL;
             newEnd->prev = TAIL->prev;
 
@@ -135,8 +167,6 @@ void spawn(const char **toks, bool bg) { // bg is true iff command ended with &
         } else{
             fprintf(stderr, "ERROR: cannot run %s\n", toks[0]);
         }
-    } else {
-        execvp(toks[0], toks);
     }
 }
 
@@ -160,7 +190,8 @@ void cmd_jobs(const char **toks) {
         } else if (currentNode->status == 1) {
             printf("[%i] (%i) %s %s \n", currentNode->jobNumber, currentNode->PID, "suspended", currentNode->command);
         } else if (currentNode->status == 2) {
-            printf("[%i] (%i) %s %s \n", currentNode->jobNumber, currentNode->PID, "killed", currentNode->command);
+            //printf("[%i] (%i) %s %s \n", currentNode->jobNumber, currentNode->PID, "killed", currentNode->command);
+            freeNode(currentNode);
         } else if (currentNode->status == 3) {
             printf("[%i] (%i) %s %s \n", currentNode->jobNumber, currentNode->PID, "", currentNode->command);
         }
@@ -179,27 +210,66 @@ void cmd_bg(const char **toks) {
 }
 
 void cmd_slay(const char **toks) {
-    // // TODO
-    // if(toks[2] != NULL || toks[1] == NULL ){
-    //     fprintf(stderr, "ERROR: slay takes exactly one argument \n", toks[0]);
-    // }
-
-    // int convertedPID = atoi(toks[1]);
+    // TODO
     
+    if(toks[2] != NULL || toks[1] == NULL ){
+        fprintf(stderr, "ERROR: slay takes exactly one argument \n", toks[0]);
+    }
 
-    // if(toks[1][0] == '%'){
-    //     struct Job* node = HEAD;
-    //     while(node->jobNumber != 0 && node->jobNumber !=){
-    //         j
-    //     }
-    // }
+    char* end;
+    int i = 0;
 
-    // int result = kill
-    printf("SLAY \n");
+    if(toks[1][0] == '%'){
+        i++;
+    }
 
+    int convertedPID = strtol(toks[1]+i, &end, 10);
     
-    
+    if(*end == '\0'){
+        //parse as jobid
+        sigset_t mask;
+        sigemptyset(&mask);
+        sigaddset(&mask, SIGCHLD);
+        sigprocmask(SIG_BLOCK, &mask, NULL);
 
+        if (i == 1){
+
+            struct Job* node = HEAD->next;
+
+            while(node->jobNumber != 0 && node->jobNumber != convertedPID){
+                node=node->next;
+            }
+
+            if (node->jobNumber == convertedPID && node->status != 2){
+                pid_t thePID = node->PID;
+                sigprocmask(SIG_UNBLOCK, &mask, NULL);
+                kill(thePID, SIGKILL);
+            } else {
+                printf("DNE \n");
+                sigprocmask(SIG_UNBLOCK, &mask, NULL);
+                fprintf(stderr, "ERROR: no job: %s \n", toks[1]); 
+            }
+        } else if (i == 0){
+            struct Job* node = HEAD->next;
+
+            while(node->jobNumber != 0 && node->PID != convertedPID){
+                node=node->next;
+            }
+            if (node->PID == convertedPID && node->status != 2){
+                sigprocmask(SIG_UNBLOCK, &mask, NULL);
+                kill(convertedPID, SIGKILL);
+            } else {
+                sigprocmask(SIG_UNBLOCK, &mask, NULL);
+                fprintf(stderr, "ERROR: no PID: %s \n", toks[1]); 
+            }
+        }
+        
+        sigprocmask(SIG_UNBLOCK, &mask, NULL);
+       
+    } else {
+        fprintf(stderr, "ERROR: bad argument for slay: %s \n", toks[1]); 
+        return;
+    }
 }
 
 void cmd_quit(const char **toks) {
@@ -278,3 +348,4 @@ int main(int argc, char **argv) {
     install_signal_handlers();
     return repl();
 }
+

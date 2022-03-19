@@ -35,11 +35,18 @@ struct Job* HEAD;
 struct Job* TAIL;
 int jobsNumber = 1;
 
+void freeNode(struct Job* currentNode){
+    currentNode->prev->next=currentNode->next;
+    currentNode->next->prev=currentNode->prev;
+    free(currentNode);
+}
+
 
 void handle_sigchld(int sig) {
     // TODO
     pid_t currPID;
-    while( (currPID = waitpid(-1, NULL, WNOHANG)) != -1){
+    int status;
+    while( (currPID = waitpid(-1, &status, WNOHANG)) != -1){
         struct Job* node = HEAD->next;
 
         while(node->jobNumber != 0 && node->PID != currPID){
@@ -49,21 +56,25 @@ void handle_sigchld(int sig) {
         if(node->jobNumber == 0){
             return;
         } else {
-            node->prev->next=node->next;
-            node->next->prev=node->prev;
-            free(node);
+                if(WIFSIGNALED(status)){
+                write(STDOUT_FILENO, "[", 1);
+                write(STDOUT_FILENO, node->sJobNumber, strlen(node->sJobNumber));
+                write(STDOUT_FILENO, "] ", 2);
 
-            write(STDOUT_FILENO, "\n[", 2);
-            write(STDOUT_FILENO, node->sJobNumber, strlen(node->sJobNumber));
-            write(STDOUT_FILENO, "] ", 2);
+                write(STDOUT_FILENO, "(", 1);
+                write(STDOUT_FILENO, node->sPID, strlen(node->sPID));
+                write(STDOUT_FILENO, ") ", 2);
 
-            write(STDOUT_FILENO, "(", 1);
-            write(STDOUT_FILENO, node->sPID, strlen(node->sPID));
-            write(STDOUT_FILENO, ") ", 2);
+                write(STDOUT_FILENO, "killed ", 7);
+                write(STDOUT_FILENO, node->command, strlen(node->command));
+                write(STDOUT_FILENO, "\n>", 1);
+                }
 
-            write(STDOUT_FILENO, "killed ", 7);
-            write(STDOUT_FILENO, node->command, strlen(node->command));
-            write(STDOUT_FILENO, "\ncrash>", 7);
+            node->status = 2;
+            //NOT SIGNAL SAFE
+            // node->prev->next=node->next;
+            // node->next->prev=node->prev;
+            // free(node);
         }
         //TODO print if needed
         
@@ -179,7 +190,8 @@ void cmd_jobs(const char **toks) {
         } else if (currentNode->status == 1) {
             printf("[%i] (%i) %s %s \n", currentNode->jobNumber, currentNode->PID, "suspended", currentNode->command);
         } else if (currentNode->status == 2) {
-            printf("[%i] (%i) %s %s \n", currentNode->jobNumber, currentNode->PID, "killed", currentNode->command);
+            //printf("[%i] (%i) %s %s \n", currentNode->jobNumber, currentNode->PID, "killed", currentNode->command);
+            freeNode(currentNode);
         } else if (currentNode->status == 3) {
             printf("[%i] (%i) %s %s \n", currentNode->jobNumber, currentNode->PID, "", currentNode->command);
         }
@@ -227,9 +239,14 @@ void cmd_slay(const char **toks) {
             while(node->jobNumber != 0 && node->jobNumber != convertedPID){
                 node=node->next;
             }
-            if (node->jobNumber == convertedPID){
-                kill(node->PID, SIGKILL);
+
+            if (node->jobNumber == convertedPID && node->status != 2){
+                pid_t thePID = node->PID;
+                sigprocmask(SIG_UNBLOCK, &mask, NULL);
+                kill(thePID, SIGKILL);
             } else {
+                printf("DNE \n");
+                sigprocmask(SIG_UNBLOCK, &mask, NULL);
                 fprintf(stderr, "ERROR: no job: %s \n", toks[1]); 
             }
         } else if (i == 0){
@@ -238,14 +255,16 @@ void cmd_slay(const char **toks) {
             while(node->jobNumber != 0 && node->PID != convertedPID){
                 node=node->next;
             }
-            if (node->PID == convertedPID){
-                kill(node->PID, SIGKILL);
+            if (node->PID == convertedPID && node->status != 2){
+                sigprocmask(SIG_UNBLOCK, &mask, NULL);
+                kill(convertedPID, SIGKILL);
             } else {
+                sigprocmask(SIG_UNBLOCK, &mask, NULL);
                 fprintf(stderr, "ERROR: no PID: %s \n", toks[1]); 
             }
         }
+        
         sigprocmask(SIG_UNBLOCK, &mask, NULL);
-
        
     } else {
         fprintf(stderr, "ERROR: bad argument for slay: %s \n", toks[1]); 
@@ -329,3 +348,4 @@ int main(int argc, char **argv) {
     install_signal_handlers();
     return repl();
 }
+
