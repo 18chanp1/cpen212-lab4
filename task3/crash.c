@@ -140,7 +140,7 @@ void spawn(const char **toks, bool bg) { // bg is true iff command ended with &
             execvp(toks[0], toks);
             //executes only if ret value, does not return.
             fprintf(stderr, "ERROR: cannot run %s\n", toks[0]);
-            kill(getpid(), SIGKILL);
+            exit(0);
         } else if (childpid != -1) {
             //parent adds child process to list. 
             struct Job* newEnd = (struct Job*) malloc(sizeof(struct Job));
