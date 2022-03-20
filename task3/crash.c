@@ -137,6 +137,7 @@ void spawn(const char **toks, bool bg) { // bg is true iff command ended with &
 
         if(childpid == 0){
             sigprocmask(SIG_UNBLOCK, &mask, NULL);
+            setpgid(0, 0);
             execvp(toks[0], toks);
             //executes only if ret value, does not return.
             fprintf(stderr, "ERROR: cannot run %s\n", toks[0]);
