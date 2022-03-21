@@ -359,10 +359,12 @@ void cmd_fg(const char **toks) {
 
             if (node->jobNumber == convertedPID && node->status != 2){
                 foregroundJob = node;
+                int s = node->status;
+                int pid = node->PID;
                 sigprocmask(SIG_UNBLOCK, &mask, NULL);
 
-                if(node->status == 1){
-                    kill(node->PID, SIGCONT);
+                if(s == 1){
+                    kill(pid, SIGCONT);
                     foregroundJob = node;
                 }
 
@@ -383,10 +385,12 @@ void cmd_fg(const char **toks) {
             }
             if (node->PID == convertedPID && node->status != 2){
                 foregroundJob = node;
+                int s = node->status;
+                int pid = node->PID;
                 sigprocmask(SIG_UNBLOCK, &mask, NULL);
 
-                if(node->status == 1){
-                    kill(node->PID, SIGCONT);
+                if(s == 1){
+                    kill(pid, SIGCONT);
                     foregroundJob = node;
                 }
                 
