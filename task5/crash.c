@@ -95,14 +95,13 @@ void handle_sigchld(int sig) {
                         foregroundJob = NULL;
                     }
                     node->status = 1;
-                } else if (WIFCONTINUED(status)){
-                    write(STDOUT_FILENO, "JAM\n", 4);
-                    node->status = 0;
-                } else if (WIFEXITED(status)){
+                }  else if (WIFEXITED(status)){
                     if(foregroundJob == node) {
                         foregroundJob = NULL;
                     }
                     node->status = 2;
+                }else {
+                    node->status = 0;
                 }
         }
         
