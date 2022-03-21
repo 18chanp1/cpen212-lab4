@@ -1,0 +1,120 @@
+diff --git a/bonus/crash.c b/bonus/crash.c
+index 9a8c60a..a1e1821 100644
+--- a/bonus/crash.c
++++ b/bonus/crash.c
+@@ -94,7 +94,7 @@ void parse_and_eval(char *s) {
+                 end = true;
+                 break;
+             }
+-            *s++ = '\0';
++            if (*s) *s++ = '\0';
+         }
+         toks[t] = NULL;
+         eval(toks, bg);
+@@ -127,4 +127,4 @@ int repl() {
+ int main(int argc, char **argv) {
+     install_signal_handlers();
+     return repl();
+-}
+\ No newline at end of file
++}
+diff --git a/task1/crash.c b/task1/crash.c
+index 9a8c60a..a1e1821 100644
+--- a/task1/crash.c
++++ b/task1/crash.c
+@@ -94,7 +94,7 @@ void parse_and_eval(char *s) {
+                 end = true;
+                 break;
+             }
+-            *s++ = '\0';
++            if (*s) *s++ = '\0';
+         }
+         toks[t] = NULL;
+         eval(toks, bg);
+@@ -127,4 +127,4 @@ int repl() {
+ int main(int argc, char **argv) {
+     install_signal_handlers();
+     return repl();
+-}
+\ No newline at end of file
++}
+diff --git a/task2/crash.c b/task2/crash.c
+index 9a8c60a..a1e1821 100644
+--- a/task2/crash.c
++++ b/task2/crash.c
+@@ -94,7 +94,7 @@ void parse_and_eval(char *s) {
+                 end = true;
+                 break;
+             }
+-            *s++ = '\0';
++            if (*s) *s++ = '\0';
+         }
+         toks[t] = NULL;
+         eval(toks, bg);
+@@ -127,4 +127,4 @@ int repl() {
+ int main(int argc, char **argv) {
+     install_signal_handlers();
+     return repl();
+-}
+\ No newline at end of file
++}
+diff --git a/task3/crash.c b/task3/crash.c
+index 9a8c60a..a1e1821 100644
+--- a/task3/crash.c
++++ b/task3/crash.c
+@@ -94,7 +94,7 @@ void parse_and_eval(char *s) {
+                 end = true;
+                 break;
+             }
+-            *s++ = '\0';
++            if (*s) *s++ = '\0';
+         }
+         toks[t] = NULL;
+         eval(toks, bg);
+@@ -127,4 +127,4 @@ int repl() {
+ int main(int argc, char **argv) {
+     install_signal_handlers();
+     return repl();
+-}
+\ No newline at end of file
++}
+diff --git a/task4/crash.c b/task4/crash.c
+index 9a8c60a..a1e1821 100644
+--- a/task4/crash.c
++++ b/task4/crash.c
+@@ -94,7 +94,7 @@ void parse_and_eval(char *s) {
+                 end = true;
+                 break;
+             }
+-            *s++ = '\0';
++            if (*s) *s++ = '\0';
+         }
+         toks[t] = NULL;
+         eval(toks, bg);
+@@ -127,4 +127,4 @@ int repl() {
+ int main(int argc, char **argv) {
+     install_signal_handlers();
+     return repl();
+-}
+\ No newline at end of file
++}
+diff --git a/task5/crash.c b/task5/crash.c
+index 9a8c60a..a1e1821 100644
+--- a/task5/crash.c
++++ b/task5/crash.c
+@@ -94,7 +94,7 @@ void parse_and_eval(char *s) {
+                 end = true;
+                 break;
+             }
+-            *s++ = '\0';
++            if (*s) *s++ = '\0';
+         }
+         toks[t] = NULL;
+         eval(toks, bg);
+@@ -127,4 +127,4 @@ int repl() {
+ int main(int argc, char **argv) {
+     install_signal_handlers();
+     return repl();
+-}
+\ No newline at end of file
++}

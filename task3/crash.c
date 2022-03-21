@@ -168,7 +168,7 @@ void spawn(const char **toks, bool bg) { // bg is true iff command ended with &
         } else{
             fprintf(stderr, "ERROR: cannot run %s\n", toks[0]);
         }
-    }
+    } 
 }
 
 void cmd_jobs(const char **toks) {
@@ -215,6 +215,7 @@ void cmd_slay(const char **toks) {
     
     if(toks[2] != NULL || toks[1] == NULL ){
         fprintf(stderr, "ERROR: slay takes exactly one argument \n", toks[0]);
+        return;
     }
 
     char* end;
