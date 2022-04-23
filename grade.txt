@@ -1,0 +1,48 @@
+********** Grade **********
+T1_new_process : 1.0
+T1_error_message : 1.0
+T2_jobs_command : 2.0
+T3_finished_jobs : 0.75
+T3_slay_job_num : 0.75
+T3_slay_pid : 0.5
+T4_fg_job_num : 0.5
+T4_fg_pid : 0.5
+T4_sig_int : 0.5
+T4_sig_quit : 0.5
+T5_ctr_z : 0.75
+T5_resume_bg : 0.75
+T5_resume_fg : 0.5
+bonus_1 : 0
+bonus_2 : 0
+Total: 10.0
+
+Late penalty task 1: nan
+
+Late penalty task 2: nan
+
+final mark: 10.0
+
+********** Tasks Description: **********
+T1_new_process : Correctly spawning a new process
+T1_error_message : Displaying the correct error message to the correct output
+T2_jobs_command : Job commands correctly show created processes
+T3_finished_jobs : Finished jobs are removed from the job command output
+T3_slay_job_num : slay with job number should work as expected
+T3_slay_pid : slay with PID should work as expected
+T4_fg_job_num : fg command should work with job number
+T4_fg_pid : fg command should work with PID
+T4_sig_int : sending interrupt signal should kill the process
+T4_sig_quit : sending quit signal should kill the process
+T5_ctr_z : sending stop signal should pause the process
+T5_resume_bg : resuming a suspended process with bg command should work
+T5_resume_fg : resuming a suspended process with fg command should work
+bonus_1 : whoami | grep <username> should show your username
+bonus_2 : echo hello > hello.txt should create a text file called hello.txt and writes hello inside it
+
+
+
+* Not sending error message to stderr or showing different error message than crash-ref (even if it is a little different, auto-grader might miss it)
+* Getting core dump, random characters, buffer overflow (malloc() error) after running few commands
+* If shell freezes after running some commands
+* Not printing message when creating process
+* Not printing message when receiving sig INT signal and such. Note that for some students, their crash do not print when signal is sent with kill command from another shell.
